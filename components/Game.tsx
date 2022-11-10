@@ -13,6 +13,7 @@ import GameOverModal from "./GameOverModal";
 import Controller from "./Controller";
 import { MdOutlineRestartAlt } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
+import { FaSkullCrossbones } from "react-icons/fa";
 
 export type GameData = TileNumber[][];
 
@@ -125,6 +126,12 @@ export default function Game(props: GameProps): JSX.Element {
     }
   };
 
+  const addToScore = (points: number) => {
+    setScore((oldScore) => {
+      return oldScore + points;
+    });
+  };
+
   const placeRandomTile = (newData: GameData, number?: TileNumber) => {
     const blanks = getBlanks(newData);
     const nBlanks = blanks.length;
@@ -137,22 +144,26 @@ export default function Game(props: GameProps): JSX.Element {
     }
   };
 
+  const simulateGameOver = () => {
+    console.log("GAME OVER");
+    setGameOver(true);
+  };
+
   /* Handle move in any direciton */
   const move = (direction: Direction) => {
     let newData = structuredClone(data);
-    let scoreChange = [0];
     switch (direction) {
       case "up":
-        moveUp(newData, scoreChange);
+        moveUp(newData);
         break;
       case "down":
-        moveDown(newData, scoreChange);
+        moveDown(newData);
         break;
       case "right":
-        moveRight(newData, scoreChange);
+        moveRight(newData);
         break;
       case "left":
-        moveLeft(newData, scoreChange);
+        moveLeft(newData);
         break;
       default:
         break;
@@ -162,15 +173,13 @@ export default function Game(props: GameProps): JSX.Element {
     if (!dataEquals(newData, data)) {
       placeRandomTile(newData);
     }
-    setScore(score + scoreChange[0]);
     setData(newData);
   };
 
   const squash = (
     coord: Coordinate,
     searchDirection: Direction,
-    newData: GameData,
-    scoreChange: number[]
+    newData: GameData
   ) => {
     const nextValueCoord = findNextValue(coord, searchDirection, newData);
     if (nextValueCoord) {
@@ -179,18 +188,13 @@ export default function Game(props: GameProps): JSX.Element {
         newData[coord[0]][coord[1]] ===
           newData[nextValueCoord[0]][nextValueCoord[1]]
       ) {
-        scoreChange[0] =
-          scoreChange[0] + (newData[coord[0]][coord[1]] as number) * 2;
+        // Add tiles into coord
+        addToScore((newData[coord[0]][coord[1]] as number) * 2);
         newData[coord[0]][coord[1]] =
           (newData[coord[0]][coord[1]] as number) * 2;
         newData[nextValueCoord[0]][nextValueCoord[1]] = undefined;
       } else if (!newData[coord[0]][coord[1]]) {
-        squash(
-          nextValueCoord as Coordinate,
-          searchDirection,
-          newData,
-          scoreChange
-        );
+        squash(nextValueCoord as Coordinate, searchDirection, newData);
         newData[coord[0]][coord[1]] =
           newData[nextValueCoord[0]][nextValueCoord[1]];
         newData[nextValueCoord[0]][nextValueCoord[1]] = undefined;
@@ -233,34 +237,34 @@ export default function Game(props: GameProps): JSX.Element {
   };
 
   /* Sum tiles with move up */
-  const moveUp = (newData: GameData, scoreChange: number[]) => {
+  const moveUp = (newData: GameData) => {
     for (let i = 0; i < props.dimension - 1; i++) {
       for (let j = 0; j < props.dimension; j++) {
-        squash([i, j], "down", newData, scoreChange);
+        squash([i, j], "down", newData);
       }
     }
   };
 
-  const moveDown = (newData: GameData, scoreChange: number[]) => {
+  const moveDown = (newData: GameData) => {
     for (let i = props.dimension - 1; i > 0; i--) {
       for (let j = 0; j < props.dimension; j++) {
-        squash([i, j], "up", newData, scoreChange);
+        squash([i, j], "up", newData);
       }
     }
   };
 
-  const moveRight = (newData: GameData, scoreChange: number[]) => {
+  const moveRight = (newData: GameData) => {
     for (let j = props.dimension - 1; j > 0; j--) {
       for (let i = 0; i < props.dimension; i++) {
-        squash([i, j], "left", newData, scoreChange);
+        squash([i, j], "left", newData);
       }
     }
   };
 
-  const moveLeft = (newData: GameData, scoreChange: number[]) => {
+  const moveLeft = (newData: GameData) => {
     for (let j = 0; j < props.dimension - 1; j++) {
       for (let i = 0; i < props.dimension; i++) {
-        squash([i, j], "right", newData, scoreChange);
+        squash([i, j], "right", newData);
       }
     }
   };
@@ -281,6 +285,9 @@ export default function Game(props: GameProps): JSX.Element {
             id="game-component-rhs-buttonBar"
             className=" flex text-2xl text-gray-600  bg-gray-300 mb-2 mx-3 p-2 mt-auto  shadow-sm rounded-sm gap-3"
           >
+            <button onClick={simulateGameOver}>
+              <FaSkullCrossbones />
+            </button>
             <button
               id="game-component-settings-button"
               className="hover:text-black ml-auto"
@@ -303,11 +310,15 @@ export default function Game(props: GameProps): JSX.Element {
 
       <GameOverModal
         open={gameOver}
-        close={() => setGameOver(false)}
         title={"GAME OVER"}
         content={<div>Would you like to play again? </div>}
-        onOkClick={() => setData(newData(props.dimension))}
+        onOkClick={() => {
+          setGameOver(false);
+          setRestart(true);
+        }}
         onCancelClick={() => setGameOver(false)}
+        okText="ALRIGHT"
+        cancelText="NO WAY"
       />
     </div>
   );

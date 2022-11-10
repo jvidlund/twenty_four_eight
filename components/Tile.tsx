@@ -1,4 +1,8 @@
+import { useState, useEffect } from "react";
+
 export type TileNumber = number | undefined;
+
+export type ChangeType = "newTile" | "addTile";
 
 export interface TileProps {
   value: TileNumber;
@@ -38,7 +42,9 @@ const textColorMap: Record<number, string> = {
 export default function Tile(props: TileProps): JSX.Element {
   return (
     <div
-      className={`animate-${props.animation} rounded-xl flex text-2xl font-bold w-16 h-16 ${
+      className={`${
+        props.animation
+      } rounded-xl flex text-2xl font-bold w-16 h-16 ${
         props.value && textColorMap[props.value]
           ? textColorMap[props.value]
           : "text-gray-700"

@@ -14,7 +14,7 @@ module.exports = {
         }
       },
       animation: {
-        tileslide: 'tileslide 1s ease-in-out infinite'
+        tileslide: 'tileslide 1s ease-in-out'
       }
     },
   },

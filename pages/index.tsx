@@ -15,7 +15,7 @@ export default function Home() {
       </Head>
 
       <main className="w-full h-screen py-20">
-        <Game dimension={5} key="Game-4" />
+        <Game dimension={4} key="Game-4" />
       </main>
 
 
